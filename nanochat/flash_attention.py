@@ -132,7 +132,7 @@ def _sdpa_attention(q, k, v, window_size, enable_gqa):
     # 分支 3：显式构造 (Tq,Tk) 的可见关系，所有 batch/head 共用并广播。
     # 约定当前 queries 对应 K/V 序列最后 Tq 个位置；Tk-Tq 是历史长度。
     # 例如已有 3 个历史 token，新输入 2 个：Tq=2、Tk=5，query 位置为 [3,4]。
-    row_idx = (Tk - Tq) + torch.arange(Tq, device=device).unsqueeze(1)  # (Tq,1)
+    row_idx = (Tk - Tq) + torch.arange(Tq, device=device).unsqueeze(1)  # (Tq,1)把新 Q 对齐到包含历史 KV cache 的完整 K/V 序列末尾，从而让新 Q 能正确看到历史缓存
     col_idx = torch.arange(Tk, device=device).unsqueeze(0)  # (1,Tk)
     mask = col_idx <= row_idx  # 广播比较得到 (Tq,Tk)；此处 True 表示允许关注。
     # 上例为 [[1,1,1,1,0], [1,1,1,1,1]]，禁止 query 3 读取位置 4。
